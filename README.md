@@ -37,3 +37,14 @@ To verify your local copy, run this command in PowerShell:
 ```powershell
 Get-FileHash .\NetInfo.ps1
 ```
+
+## 📝 Changelog — v000.170 Beta
+
+### What changed
+- Updated the release banner to reflect the new beta version: 000.170.
+- Added an automated SHA-256 integrity check to help confirm the script matches the official release build.
+- Added a security verification section to the README for hash validation and VirusTotal reference.
+
+### Why
+- This update marks the next beta iteration of the toolkit after the 000.169 baseline.
+- The integrity check and verification guidance make the release more transparent and easier to validate for users and reviewers.

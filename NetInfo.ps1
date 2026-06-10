@@ -19,7 +19,7 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'SilentlyContinue'
 
-$script:ExpectedReleaseHash = '73fe3c91618df3cd9517a37e7944b9368a958f57e543bf861eb46d35b22bef09'
+$script:ExpectedReleaseHash = '388d0ea671997f7417bd7c39adc1a9d603137f3d3c3854811969a429794c5a42'
 
 function Test-ReleaseIntegrity {
     $actualHash = (Get-FileHash -Path $PSCommandPath -Algorithm SHA256).Hash.ToUpperInvariant()
@@ -55,7 +55,7 @@ function Write-Header {
   ╔══════════════════════════════════════════════════════╗
   ║    NetInfo & Diagnostics  ·  God Mode Edition        ║
   ╚══════════════════════════════════════════════════════╝
-    FIRST RELEASE · BETA VERSION 000.169 · BUILD 06-10-2026
+    FIRST RELEASE · BETA VERSION 000.170 · BUILD 06-10-2026
 "@
     Write-Host $banner -ForegroundColor Cyan
 }
