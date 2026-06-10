@@ -1,5 +1,5 @@
 # NDT
-# NetInfo — God Mode Network Diagnostics & Toolkit
+# Network Diagnostics Toolkit
 
 > Beta 000.171 — verified release build for the current GitHub publish flow.
 
