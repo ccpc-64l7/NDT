@@ -19,7 +19,7 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'SilentlyContinue'
 
-$script:ExpectedReleaseHash = 'a5c34979c1c275648eb2891967825eaacb18909e7c79de0b2ffedf7f52c665cf'
+$script:ExpectedReleaseHash = '73fe3c91618df3cd9517a37e7944b9368a958f57e543bf861eb46d35b22bef09'
 
 function Test-ReleaseIntegrity {
     $actualHash = (Get-FileHash -Path $PSCommandPath -Algorithm SHA256).Hash.ToUpperInvariant()
