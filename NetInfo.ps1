@@ -19,6 +19,23 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'SilentlyContinue'
 
+$script:ExpectedReleaseHash = 'a5c34979c1c275648eb2891967825eaacb18909e7c79de0b2ffedf7f52c665cf'
+
+function Test-ReleaseIntegrity {
+    $actualHash = (Get-FileHash -Path $PSCommandPath -Algorithm SHA256).Hash.ToUpperInvariant()
+    $expectedHash = $script:ExpectedReleaseHash.ToUpperInvariant()
+    return $actualHash -eq $expectedHash
+}
+
+function Show-ReleaseIntegrityNotice {
+    if (Test-ReleaseIntegrity) {
+        Write-Ok ("Release SHA-256 verified: {0}" -f $script:ExpectedReleaseHash)
+    }
+    else {
+        Write-Warn "This copy does not match the official release SHA-256 hash. Use the published release asset for verification."
+    }
+}
+
 # Global state for exporting
 $script:ReportData = @{
     Timestamp = Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ"
@@ -341,6 +358,7 @@ function Show-Menu {
 
 do {
     Write-Header
+    Show-ReleaseIntegrityNotice
     Show-Menu
     $choice = (Read-Host).Trim().ToUpper()
     Write-Header
