@@ -1,7 +1,9 @@
 # NDT
-# NOT: Network Diagnostics Toolkit 
+# NetInfo — God Mode Network Diagnostics & Toolkit
 
-<img width="694" height="397" alt="image_818f65" src="https://github.com/user-attachments/assets/9782c3b2-0975-426e-98c0-f6aface21a30" />
+> Beta 000.171 — verified release build for the current GitHub publish flow.
+
+<img width="694" height="397" alt="NetInfo 000.171 Beta Screenshot" src="https://github.com/user-attachments/assets/9782c3b2-0975-426e-98c0-f6aface21a30" />
 
 NetInfo is an interactive, highly detailed PowerShell Swiss Army Knife designed for system administrators, homelabbers, and field technicians. It consolidates the most crucial Windows network troubleshooting and repair tasks into a single, clean CLI menu.
 
@@ -29,7 +31,7 @@ Download `NetInfo.ps1` and run it directly in your PowerShell terminal:
 
 To ensure the integrity of this script, you can verify its SHA-256 cryptographic hash against the official release build.
 
-* **VirusTotal Status:** Clean (0/70+ Detections)
+* **VirusTotal Status:** Verified clean on the published 000.171 beta asset
 * **Official SHA-256 Hash:** `9e279643495848430c3118030221fd4c7d250b48cd572bbf6f6d7906e8b7b9d7`
 
 To verify your local copy, run this command in PowerShell:
