@@ -1,5 +1,5 @@
 # NDT
-# NetInfo: God-Mode Network Diagnostics Toolkit
+# NOT: Network Diagnostics Toolkit 
 
 <img width="694" height="397" alt="image_818f65" src="https://github.com/user-attachments/assets/9782c3b2-0975-426e-98c0-f6aface21a30" />
 
