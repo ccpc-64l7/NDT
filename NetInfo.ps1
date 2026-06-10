@@ -38,7 +38,7 @@ function Write-Header {
   ╔══════════════════════════════════════════════════════╗
   ║    NetInfo & Diagnostics  ·  God Mode Edition        ║
   ╚══════════════════════════════════════════════════════╝
-    WARNING THIS IS BATA CODE V 000.169 build date 06-10-2026
+    FIRST RELEASE · BETA VERSION 000.169 · BUILD 06-10-2026
 "@
     Write-Host $banner -ForegroundColor Cyan
 }
