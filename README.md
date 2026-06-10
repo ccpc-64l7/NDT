@@ -3,8 +3,7 @@
 
 > Beta 000.171 — verified release build for the current GitHub publish flow.
 
-<img width="694" height="397" alt="NetInfo 000.171 Beta Screenshot" src="https://github.com/user-attachments/assets/9782c3b2-0975-426e-98c0-f6aface21a30" />
-
+<img width="1111" height="634" alt="3d2aa029-b69c-42a8-8ca6-e96bd7839c6a" src="https://github.com/user-attachments/assets/3c2e9298-51bf-4106-84a7-9b7e3203e71e" />
 NetInfo is an interactive, highly detailed PowerShell Swiss Army Knife designed for system administrators, homelabbers, and field technicians. It consolidates the most crucial Windows network troubleshooting and repair tasks into a single, clean CLI menu.
 
 ## 🚀 Features
