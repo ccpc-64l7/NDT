@@ -6,6 +6,8 @@
 <img width="1111" height="634" alt="3d2aa029-b69c-42a8-8ca6-e96bd7839c6a" src="https://github.com/user-attachments/assets/3c2e9298-51bf-4106-84a7-9b7e3203e71e" />
 NetInfo is an interactive, highly detailed PowerShell Swiss Army Knife designed for system administrators, homelabbers, and field technicians. It consolidates the most crucial Windows network troubleshooting and repair tasks into a single, clean CLI menu.
 
+This repository is also evolving into a hybrid PowerShell + Python lab. The PowerShell front end remains the primary Windows-native interface, while Python helper scripts live alongside it for deeper DNS, OSINT, and automation workflows.
+
 ## 🚀 Features
 
 * **Advanced IP Enumeration:** Identifies local IP routing, primary gateways, active DNS resolvers, and external public IPs with fallback Geo/ASN enrichment.
@@ -16,6 +18,12 @@ NetInfo is an interactive, highly detailed PowerShell Swiss Army Knife designed 
 * **Ookla Speedtest CLI Integration:** Automatically detects, installs (via Winget, Choco, or Scoop), and silently accepts EULAs to run official throughput benchmarks.
 * **DNS Benchmarking & Tracerouting:** Compare latency across major public DNS providers (Cloudflare, Google, Quad9) and trace outbound traffic hops.
 * **Wake-on-LAN:** Broadcast magic UDP packets directly from the terminal to wake remote homelab servers.
+
+## 🛠️ Hybrid Architecture
+
+- `NetInfo.ps1` remains the main interactive diagnostic interface for Windows network tasks.
+- `scripts/update_release_hash.py` is the current Python helper in the repo for release and hash automation.
+- Future Python modules will be added under `scripts/` to support DNS profiling, OSINT enrichment, and structured JSON output for the PowerShell UI to consume.
 
 ## 🛠️ Usage
 
