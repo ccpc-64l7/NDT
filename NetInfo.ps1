@@ -19,23 +19,6 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'SilentlyContinue'
 
-$script:ExpectedReleaseHash = '388d0ea671997f7417bd7c39adc1a9d603137f3d3c3854811969a429794c5a42'
-
-function Test-ReleaseIntegrity {
-    $actualHash = (Get-FileHash -Path $PSCommandPath -Algorithm SHA256).Hash.ToUpperInvariant()
-    $expectedHash = $script:ExpectedReleaseHash.ToUpperInvariant()
-    return $actualHash -eq $expectedHash
-}
-
-function Show-ReleaseIntegrityNotice {
-    if (Test-ReleaseIntegrity) {
-        Write-Ok ("Release SHA-256 verified: {0}" -f $script:ExpectedReleaseHash)
-    }
-    else {
-        Write-Warn "This copy does not match the official release SHA-256 hash. Use the published release asset for verification."
-    }
-}
-
 # Global state for exporting
 $script:ReportData = @{
     Timestamp = Get-Date -Format "yyyy-MM-ddTHH:mm:ssZ"
@@ -53,9 +36,9 @@ function Write-Header {
     $banner = @"
 
   ╔══════════════════════════════════════════════════════╗
-  ║    NetInfo & Diagnostics  ·  God Mode Edition        ║
+  ║ NDT Network Diagnostics Toolkit · SYSADMIN Edition   ║
   ╚══════════════════════════════════════════════════════╝
-    FIRST RELEASE · BETA VERSION 000.170 · BUILD 06-10-2026
+                · BETA VERSION 000.171 ·
 "@
     Write-Host $banner -ForegroundColor Cyan
 }
@@ -358,7 +341,6 @@ function Show-Menu {
 
 do {
     Write-Header
-    Show-ReleaseIntegrityNotice
     Show-Menu
     $choice = (Read-Host).Trim().ToUpper()
     Write-Header

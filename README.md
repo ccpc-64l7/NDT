@@ -30,7 +30,7 @@ Download `NetInfo.ps1` and run it directly in your PowerShell terminal:
 To ensure the integrity of this script, you can verify its SHA-256 cryptographic hash against the official release build.
 
 * **VirusTotal Status:** Clean (0/70+ Detections)
-* **Official SHA-256 Hash:** `a5c34979c1c275648eb2891967825eaacb18909e7c79de0b2ffedf7f52c665cf`
+* **Official SHA-256 Hash:** `9e279643495848430c3118030221fd4c7d250b48cd572bbf6f6d7906e8b7b9d7`
 
 To verify your local copy, run this command in PowerShell:
 
@@ -38,13 +38,13 @@ To verify your local copy, run this command in PowerShell:
 Get-FileHash .\NetInfo.ps1
 ```
 
-## 📝 Changelog — v000.170 Beta
+## 📝 Changelog — v000.171 Beta
 
 ### What changed
-- Updated the release banner to reflect the new beta version: 000.170.
-- Added an automated SHA-256 integrity check to help confirm the script matches the official release build.
-- Added a security verification section to the README for hash validation and VirusTotal reference.
+- Updated the top banner to the current SYSADMIN-focused 000.171 beta presentation.
+- Documented the official SHA-256 hash for the final 000.171 script build.
+- Refreshed the README verification guidance so the release asset and local copy can be checked consistently.
 
 ### Why
-- This update marks the next beta iteration of the toolkit after the 000.169 baseline.
-- The integrity check and verification guidance make the release more transparent and easier to validate for users and reviewers.
+- This release keeps the beta branch aligned with the latest project-state updates and security verification workflow.
+- The integrity notice and hash guidance make the current beta release easier to validate before distribution.
