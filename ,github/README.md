@@ -2,14 +2,15 @@
 
 # 🌐 Welcome to NDT (Network Diagnostics Toolkit)
 
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/ccpc-64l7/NDT/blob/osint-labs/.github/CONTRIBUTING.md)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/ccpc-64l7/NDT/blob/osint-labs/LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![PowerShell](https://img.shields.io/badge/PowerShell-Ready-blue.svg)](https://microsoft.com/PowerShell)
 
 *The ultimate PowerShell Swiss Army Knife for system administrators, homelabbers, and field technicians.*
 
 </div>
 
+---
 
 ## 👋 Hello and Welcome!
 
