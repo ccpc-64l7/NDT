@@ -21,14 +21,14 @@ This repository is also evolving into a hybrid PowerShell + Python lab. The Powe
 
 ## 🛠️ Hybrid Architecture
 
-- `NetInfo.ps1` remains the main interactive diagnostic interface for Windows network tasks.
+- `NDT.ps1` remains the main interactive diagnostic interface for Windows network tasks.
 - `scripts/update_release_hash.py` is the current Python helper in the repo for release and hash automation.
 - Future Python modules will be added under `scripts/` to support DNS profiling, OSINT enrichment, and structured JSON output for the PowerShell UI to consume.
 
 ## 🛠️ Usage
 
 ### Quick Start
-Download `NetInfo.ps1` and run it directly in your PowerShell terminal:
+Download `NDT.ps1` and run it directly in your PowerShell terminal:
 
 ```powershell
 .\NetInfo.ps1
@@ -76,7 +76,7 @@ https://www.virustotal.com/gui/file/9e279643495848430c3118030221fd4c7d250b48cd57
 To verify your local copy, run this command in PowerShell:
 
 ```powershell
-Get-FileHash .\NetInfo.ps1
+Get-FileHash .\NDT.ps1
 ```
 
 ## 📝 Changelog — v000.171 Beta
