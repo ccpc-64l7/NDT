@@ -1,7 +1,7 @@
 ﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
-    NetInfo — God Mode Network Diagnostics & Toolkit
+   Network Diagnostics Toolkit
 
 .DESCRIPTION
     Interactive CLI menu for:
@@ -38,7 +38,7 @@ function Write-Header {
   ╔══════════════════════════════════════════════════════╗
   ║ NDT Network Diagnostics Toolkit · SYSADMIN Edition   ║
   ╚══════════════════════════════════════════════════════╝
-                · BETA VERSION 000.171 ·
+                · BETA NDT 000.171 · COMING SOON BETA 000.172 
 "@
     Write-Host $banner -ForegroundColor Cyan
 }
