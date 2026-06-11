@@ -1,4 +1,4 @@
-﻿#Requires -Version 5.1
+#Requires -Version 5.1
 <#
 .SYNOPSIS
    Network Diagnostics Toolkit
@@ -36,9 +36,9 @@ function Write-Header {
     $banner = @"
 
   ╔══════════════════════════════════════════════════════╗
-  ║ NDT Network Diagnostics Toolkit · SYSADMIN Edition   ║
+  ║           NDT Network Diagnostics Toolkit ·          ║
   ╚══════════════════════════════════════════════════════╝
-                · BETA NDT 000.171 · COMING SOON BETA 000.172 
+                     · BETA 000.172 ·
 "@
     Write-Host $banner -ForegroundColor Cyan
 }
@@ -179,17 +179,32 @@ function Invoke-DnsBenchmark {
     Write-Section "DNS Resolvers Benchmark"
     $servers = @('1.1.1.1', '1.0.0.1', '8.8.8.8', '8.8.4.4', '9.9.9.9', '208.67.222.222')
     $results = @()
-    
+
+    # Use System.Net.NetworkInformation.Ping — works identically on PS5.1 and PS7+
+    # (Test-Connection changed its return object between versions: ResponseTime → Latency)
     Write-Info "Testing standard resolvers..."
+    $pinger = New-Object System.Net.NetworkInformation.Ping
+
     foreach ($s in $servers) {
-        $ping = Test-Connection -ComputerName $s -Count 3 -ErrorAction SilentlyContinue | Measure-Object -Property ResponseTime -Average
-        if ($ping.Count -gt 0) { $results += [pscustomobject]@{Server=$s; LatencyMs=[math]::Round($ping.Average, 2)} }
+        $times = [System.Collections.Generic.List[long]]::new()
+        for ($i = 0; $i -lt 3; $i++) {
+            try {
+                $reply = $pinger.Send($s, 2000)
+                if ($reply.Status -eq 'Success') { $times.Add($reply.RoundtripTime) }
+            } catch {}
+        }
+        if ($times.Count -gt 0) {
+            $avg = [math]::Round(($times | Measure-Object -Average).Average, 2)
+            $results += [pscustomobject]@{ Server = $s; LatencyMs = $avg }
+        }
     }
-    
+
     if ($results) {
         $sorted = $results | Sort-Object LatencyMs
         $sorted | Format-Table -AutoSize
         Write-Ok "Fastest Responder: $($sorted[0].Server) at $($sorted[0].LatencyMs) ms"
+    } else {
+        Write-Warn "No resolvers responded. Check connectivity."
     }
 }
 
@@ -214,6 +229,157 @@ function Send-WOL {
         $UdpClient.Close()
         Write-Ok "Magic packet broadcasted for $Mac"
     } catch { Write-Err "Invalid MAC format." }
+}
+
+# ─── Python environment helpers ─────────────────────────────────────────────
+
+function Find-Python {
+    <#
+    .SYNOPSIS
+        Returns the path to a working Python 3 binary, or $null if none found.
+        Skips Windows Store stubs (they return an error, not a version string).
+    #>
+    foreach ($cmd in @('python', 'python3', 'py')) {
+        $c = Get-Command $cmd -ErrorAction SilentlyContinue
+        if (-not $c) { continue }
+        try {
+            $ver = & $c.Source --version 2>&1
+            if ($ver -match 'Python\s+3') { return $c.Source }
+        } catch {}
+    }
+    return $null
+}
+
+function Ensure-PipAndDnsPython {
+    <#
+    .SYNOPSIS
+        Confirms dnspython is importable; auto-installs via pip if not.
+        Returns $true if ready, $false if the user declined or install failed.
+    #>
+    param([Parameter(Mandatory)][string]$PythonBin)
+
+    # ── 1. Already installed? ────────────────────────────────────────
+    $check = & $PythonBin -c "import dns; print('ok')" 2>&1
+    if ("$check".Trim() -eq 'ok') { return $true }
+
+    Write-Warn "Python module 'dnspython' is not installed."
+    Write-Host ""
+
+    # ── 2. Verify pip is available ───────────────────────────────────
+    $pipCheck = & $PythonBin -m pip --version 2>&1
+    if ($pipCheck -notmatch 'pip') {
+        Write-Err "pip is not available for this Python installation."
+        Write-Host ""
+        Write-Host "  Bootstrap pip manually, then re-run:" -ForegroundColor DarkGray
+        Write-Host "    python -m ensurepip --upgrade" -ForegroundColor Cyan
+        Write-Host "    python -m pip install --upgrade pip" -ForegroundColor Cyan
+        return $false
+    }
+
+    $pipVer = ($pipCheck -split '\s+')[1]
+    Write-Info "pip $pipVer is available."
+    Write-Host ""
+    Write-Host "  Install 'dnspython' now? [Y/N] " -NoNewline -ForegroundColor Cyan
+    if ((Read-Host).Trim() -notmatch '^[Yy]') {
+        Write-Info "Skipped. Run manually:  pip install dnspython"
+        return $false
+    }
+
+    # ── 3. Install dnspython ─────────────────────────────────────────
+    Write-Host ""
+    Write-Info "Running: $PythonBin -m pip install dnspython ..."
+    Write-Host ""
+    & $PythonBin -m pip install dnspython
+
+    # ── 4. Verify install succeeded ──────────────────────────────────
+    $verify = & $PythonBin -c "import dns; print('ok')" 2>&1
+    if ("$verify".Trim() -eq 'ok') {
+        Write-Host ""
+        Write-Ok "dnspython installed and verified."
+        return $true
+    } else {
+        Write-Host ""
+        Write-Err "dnspython import still failing after install."
+        Write-Info "Try running as Administrator or check pip output above."
+        return $false
+    }
+}
+
+# ────────────────────────────────────────────────────────────────────────────
+
+function Get-NDTDNSProfile {
+    Write-Section "DNS OSINT Recon"
+
+    # ── Step 1: Find Python ──────────────────────────────────────────
+    Write-Info "Locating Python 3..."
+    $pyBin = Find-Python
+
+    if (-not $pyBin) {
+        Write-Host ""
+        Write-Err "Python 3 is not installed or not in PATH."
+        Write-Host ""
+        Write-Host "  Install Python (pick one):" -ForegroundColor DarkGray
+        Write-Host "    winget  :  " -NoNewline -ForegroundColor DarkGray
+        Write-Host "winget install Python.Python.3" -ForegroundColor Cyan
+        Write-Host "    choco   :  " -NoNewline -ForegroundColor DarkGray
+        Write-Host "choco install python" -ForegroundColor Cyan
+        Write-Host "    manual  :  " -NoNewline -ForegroundColor DarkGray
+        Write-Host "https://www.python.org/downloads/" -ForegroundColor Cyan
+        Write-Host ""
+        Write-Info "After installing Python, restart this script."
+        return
+    }
+
+    $pyVer = (& $pyBin --version 2>&1)
+    Write-Ok "Found: $pyBin  ($pyVer)"
+
+    # ── Step 2: Ensure dnspython is present ──────────────────────────
+    $ready = Ensure-PipAndDnsPython -PythonBin $pyBin
+    if (-not $ready) { return }
+
+    # ── Step 3: Locate the Python helper script ───────────────────────
+    $scriptPath = Join-Path $PSScriptRoot "scripts\collect_dns_profile.py"
+    if (-not (Test-Path $scriptPath)) {
+        Write-Err "Helper script not found at:"
+        Write-Host "      $scriptPath" -ForegroundColor DarkGray
+        Write-Info "Expected layout:  <toolkit-root>\scripts\collect_dns_profile.py"
+        return
+    }
+
+    # ── Step 4: Prompt for domain and run ────────────────────────────
+    Write-Host ""
+    $domain = Read-Host "  Enter Target Domain (e.g., github.com)"
+    if ([string]::IsNullOrWhiteSpace($domain)) { return }
+
+    Write-Host ""
+    Write-Info "Querying DNS records for: $domain"
+
+    try {
+        $rawJson = & $pyBin $scriptPath --target $domain 2>&1
+        $result  = $rawJson | ConvertFrom-Json
+
+        if ($result.error) {
+            Write-Err "DNS query error: $($result.error)"
+            return
+        }
+
+        $found = $false
+        foreach ($type in 'A', 'AAAA', 'MX', 'TXT') {
+            $records = $result.$type
+            if ($records -and $records.Count -gt 0) {
+                $found = $true
+                Write-Host "`n  >>> $type RECORDS" -ForegroundColor DarkCyan
+                foreach ($record in $records) {
+                    Write-Host "      $record" -ForegroundColor White
+                }
+            }
+        }
+        if (-not $found) { Write-Warn "No DNS records returned for: $domain" }
+
+    } catch {
+        Write-Err "Execution failed: $_"
+        Write-Info "Raw output: $rawJson"
+    }
 }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -293,9 +459,18 @@ function Export-DiagnosticBundle {
     Write-Host "  [>] Dumping active network connections..." -ForegroundColor DarkGray
     netstat -ano > "$tempDir\netstat.txt"
     
-    Write-Host "  [>] Fetching DNS & Public IP..." -ForegroundColor DarkGray
+    Write-Host "  [>] Fetching DNS servers & Public IP..." -ForegroundColor DarkGray
     Get-DnsClientServerAddress | Out-File "$tempDir\dns_servers.txt"
-    $extIP = Get-ExternalIP | Out-Null
+
+    # Silent external IP fetch — avoids dumping the interactive UI mid-export
+    $extIP = $null
+    foreach ($svc in @('https://ipinfo.io/ip','https://api.ipify.org','https://icanhazip.com')) {
+        try {
+            $r = (Invoke-RestMethod -Uri $svc -TimeoutSec 5 -UseBasicParsing).Trim()
+            if ($r -match '^\d{1,3}(\.\d{1,3}){3}$') { $extIP = $r; break }
+        } catch {}
+    }
+    if ($extIP) { "External IP: $extIP" | Out-File "$tempDir\external_ip.txt" }
     
     $bin = Find-SpeedtestBinary
     if ($bin) {
@@ -304,7 +479,7 @@ function Export-DiagnosticBundle {
     }
 
     Write-Host "  [>] Zipping bundle..." -ForegroundColor DarkGray
-    $zipPath = Join-Path [Environment]::GetFolderPath("Desktop") "NetInfo_$stamp.zip"
+    $zipPath = Join-Path ([Environment]::GetFolderPath("Desktop")) "NetInfo_$stamp.zip"
     Compress-Archive -Path "$tempDir\*" -DestinationPath $zipPath -Force
 
     # Cleanup temp folder
@@ -331,9 +506,10 @@ function Show-Menu {
     Write-Host "  ├────────────────────────────────────────────────────────┤" -ForegroundColor DarkCyan
     Write-Host "  │  8  Wake-on-LAN (WOL) Broadcaster                      │" -ForegroundColor DarkYellow
     Write-Host "  │  9  Network Stack Repair (Reset & Flush)               │" -ForegroundColor Red
+    Write-Host "  │ 10  DNS OSINT Recon Profile                            │" -ForegroundColor DarkYellow
     Write-Host "  ├────────────────────────────────────────────────────────┤" -ForegroundColor DarkCyan
     Write-Host "  │  0  Generate Full Diagnostic Bundle (.ZIP)             │" -ForegroundColor Cyan
-    Write-Host "  │  Q  Quit                                               │" -ForegroundColor DarkGray
+    Write-Host "  │  Q  Quit NDT                                               │" -ForegroundColor DarkGray
     Write-Host "  └────────────────────────────────────────────────────────┘" -ForegroundColor DarkCyan
     Write-Host ""
     Write-Host "  ›  " -NoNewline -ForegroundColor Cyan
@@ -355,6 +531,7 @@ do {
         '7' { Invoke-Speedtest }
         '8' { Send-WOL }
         '9' { Repair-Network }
+        '10' { Get-NDTDNSProfile }
         '0' { Export-DiagnosticBundle }
         'Q' { break }
         default { Write-Host "  [?] Invalid selection." -ForegroundColor DarkYellow }
