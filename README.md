@@ -42,8 +42,8 @@ To ensure the integrity of this script, you can verify its SHA-256 cryptographic
 * Verified clean on the published 000.171 beta asset
 * Basic properties
 
-https://www.virustotal.com/gui/file/9e279643495848430c3118030221fd4c7d250b48cd572bbf6f6d7906e8b7b9d7](https://www.virustotal.com/gui/file/7dc1f734e5a5306b80ec279ebf1ca4825155e98a3e196e4680ff99ce91d86070/details)
 
+https://www.virustotal.com/gui/file/7dc1f734e5a5306b80ec279ebf1ca4825155e98a3e196e4680ff99ce91d86070
 * **Official SHA-256 Hash:** `7dc1f734e5a5306b80ec279ebf1ca4825155e98a3e196e4680ff99ce91d86070`
 
 To verify your local copy, run this command in PowerShell:
