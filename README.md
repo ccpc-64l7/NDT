@@ -31,7 +31,7 @@ This repository is also evolving into a hybrid PowerShell + Python lab. The Powe
 Download `NDT.ps1` and run it directly in your PowerShell terminal:
 
 ```powershell
-.\NetInfo.ps1
+.\NDT.ps1
 ```
 
 ## 🔒 Security Verification
@@ -41,37 +41,10 @@ To ensure the integrity of this script, you can verify its SHA-256 cryptographic
 * **VirusTotal Status:**
 * Verified clean on the published 000.171 beta asset
 * Basic properties
-MD5
-92d38bd6299838da6677643ad5f01063
- 
-SHA-1
-3086478f8e95bdf70a7327ea1ba7c63a2ca802b1
- 
-SHA-256
-9e279643495848430c3118030221fd4c7d250b48cd572bbf6f6d7906e8b7b9d7
- 
-SSDEEP
-192:38iowCd085Nbm37qYCytflbPNtfjGQixayoQsFKKVgRgRDQiGGmzaNxeNflu6ugK:Hn0sIMfxezCY1vhI
- 
-TLSH
-T1378292346A4064697587CCAE99B69D0839E0B02BF04D2D80B55CF1E4AFFE43CCF66976
- 
-File type
-Text 
-text
- 
-Magic
-Unicode text, UTF-8 (with BOM) text
- 
-TrID
-Text - UTF-8 encoded (100%)
- 
-File size
-17.73 KB (18154 bytes)
 
-https://www.virustotal.com/gui/file/9e279643495848430c3118030221fd4c7d250b48cd572bbf6f6d7906e8b7b9d7
+https://www.virustotal.com/gui/file/9e279643495848430c3118030221fd4c7d250b48cd572bbf6f6d7906e8b7b9d7](https://www.virustotal.com/gui/file/7dc1f734e5a5306b80ec279ebf1ca4825155e98a3e196e4680ff99ce91d86070/details)
 
-* **Official SHA-256 Hash:** `9e279643495848430c3118030221fd4c7d250b48cd572bbf6f6d7906e8b7b9d7`
+* **Official SHA-256 Hash:** `7dc1f734e5a5306b80ec279ebf1ca4825155e98a3e196e4680ff99ce91d86070`
 
 To verify your local copy, run this command in PowerShell:
 
