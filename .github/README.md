@@ -53,13 +53,3 @@ To verify your local copy, run this command in PowerShell:
 Get-FileHash .\NDT.ps1
 ```
 
-## 📝 Changelog — v000.171 Beta
-
-### What changed
-- Updated the top banner to the current SYSADMIN-focused 000.171 beta presentation.
-- Documented the official SHA-256 hash for the final 000.171 script build.
-- Refreshed the README verification guidance so the release asset and local copy can be checked consistently.
-
-### Why
-- This release keeps the beta branch aligned with the latest project-state updates and security verification workflow.
-- The integrity notice and hash guidance make the current beta release easier to validate before distribution.
