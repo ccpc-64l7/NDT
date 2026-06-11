@@ -5,7 +5,7 @@
 
 <img width="968" height="513" alt="{E8614005-B8D2-4813-B1D9-B8F7ABCB3181}" src="https://github.com/user-attachments/assets/66cd3d7b-d8a1-42a0-bb41-59c4b5b2b10d" />
 
-NetInfo is an interactive, highly detailed PowerShell Swiss Army Knife designed for system administrators, homelabbers, and field technicians. It consolidates the most crucial Windows network troubleshooting and repair tasks into a single, clean CLI menu.
+Network Diagnostics Toolkit (NDT) is an interactive, highly detailed PowerShell Swiss Army Knife designed for system administrators, homelabbers, and field technicians. It consolidates the most crucial Windows network troubleshooting and repair tasks into a single, clean CLI menu.
 
 This repository is also evolving into a hybrid PowerShell + Python lab. The PowerShell front end remains the primary Windows-native interface, while Python helper scripts live alongside it for deeper DNS, OSINT, and automation workflows.
 
