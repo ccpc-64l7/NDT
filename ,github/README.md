@@ -1,24 +1,35 @@
-# NDT: Network Diagnostics Toolkit
+<div align="center">
 
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](.github/CONTRIBUTING.md)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+# 🌐 Welcome to NDT (Network Diagnostics Toolkit)
 
-Welcome to **NDT (Network Diagnostics Toolkit)**! This repository houses `NDT.PS1`, an interactive, highly detailed PowerShell Swiss Army Knife designed for system administrators, homelabbers, and field technicians. 
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/ccpc-64l7/NDT/blob/osint-labs/.github/CONTRIBUTING.md)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/ccpc-64l7/NDT/blob/osint-labs/LICENSE)
+[![PowerShell](https://img.shields.io/badge/PowerShell-Ready-blue.svg)](https://microsoft.com/PowerShell)
 
-Whether you are troubleshooting a standard home network, optimizing multi-gig fiber connections, testing bleeding-edge Wi-Fi 7 hardware throughput, or checking Starlink satellite latency, NetInfo consolidates the most crucial Windows network troubleshooting and repair tasks into a single, clean CLI menu.
+*The ultimate PowerShell Swiss Army Knife for system administrators, homelabbers, and field technicians.*
 
-## 🚀 Features
+</div>
 
-*   **Quick Network Overview:** Instantly pull IP, DNS, and Gateway information.
-*   **Deep Diagnostics:** Run advanced connectivity and latency checks in seconds.
-*   **Repair & Reset:** Flush DNS, release/renew IPs, and reset network adapters without memorizing complex commands.
-*   **Interactive Menu:** A clean, easy-to-read command-line interface that doesn't require scripting knowledge to operate.
 
-## 💻 Getting Started
+## 👋 Hello and Welcome!
 
-To get a local copy up and running, follow these simple steps:
+We are thrilled you found your way to the **OSINT-Labs Network Diagnostics Toolkit (NDT)**. 
 
-1. Clone the repository to your local machine:
+Whether you are a seasoned network engineer trying to diagnose multi-gig fiber connections, or a homelabber fixing a DNS issue, this project was built for you. We believe that network troubleshooting shouldn't require memorizing a dozen different complex command-line strings. 
+
+NDT consolidates the most crucial Windows network diagnostics and repair tasks into a single, clean, interactive CLI menu.
+
+## ✨ What's Inside?
+
+Our core tool is `NDT.ps1`. Running this script provides an interactive menu that allows you to instantly:
+* **Diagnose:** Pull local IP, Gateway, and DNS configurations.
+* **Test:** Run advanced connectivity, latency, and routing checks.
+* **Repair:** Flush DNS, release/renew IP addresses, and restart network adapters safely.
+
+## 🚀 Getting Started
+
+Ready to take it for a spin? You can get up and running in less than a minute.
+
+**1. Clone the repository**
 ```powershell
-   git clone [https://github.com/ccpc-64l7/NDT.git](https://github.com/ccpc-64l7/NDT.git)
-   https://github.com/ccpc-64l7/NDT.git
+git clone -b osint-labs [https://github.com/ccpc-64l7/NDT.git](https://github.com/ccpc-64l7/NDT.git)
