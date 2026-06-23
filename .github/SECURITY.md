@@ -1,26 +1,28 @@
-# Security Policy
+# Security Policy & Responsible Disclosure
 
-First off, thank you! This is an open-source project, and we absolutely welcome anyone and everyone to help out. Security is a team effort, and we are incredibly grateful to community members who help keep this project safe and reliable.
+First off, thank you! This is an open-source project, and we absolutely welcome anyone and everyone to help out. Because the Network Diagnostics Toolkit (NDT) interacts with deep system architecture and network routing, security is our highest priority. 
+
+We are incredibly grateful to community members and security researchers who help keep this project safe, reliable, and ethically sound.
 
 ## Supported Versions
 
-If you are using or testing the project, we recommend sticking to the supported versions below:
+Currently, NDT is in active Beta development. We only provide security patches for the most recent releases. If you are auditing or testing the project, please ensure you are on the latest build:
 
 | Version | Supported          |
 | ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+| Beta 000.17x | :white_check_mark: |
+| < Beta 000.170 | :x:                |
 
-## Reporting a Vulnerability
+*Note: Security guarantees apply only when running NDT on supported environments (PowerShell 7+ and actively maintained Python 3.x releases).*
 
-Because anyone can view public GitHub issues, **please do not report critical security vulnerabilities publicly.** We want to make sure we can patch them before they are exploited. 
+## Responsible Disclosure Policy
 
-If you find a security flaw, we would love your help fixing it! Here is how to let us know:
+Because NDT possesses administrative capabilities and handles diagnostic telemetry, **please do not report critical security vulnerabilities via public GitHub issues.** We require time to triage and patch vulnerabilities before they can be weaponized against users' networks or legacy systems.
 
-1. **Email Us:** Send a quick summary of the issue to NDTsoftware@ccpcrepair.com.
-2. **Include the Details:** Let us know how to reproduce the bug and what version you found it on. Proof-of-concept code is highly appreciated!
-3. **The Fix:** We will get back to you as soon as possible. If you already have a fix in mind and want to submit a private patch, let us know in the email.
+If you discover a security flaw, privilege escalation bug, or data privacy leak, please follow our responsible disclosure process:
 
-Once the vulnerability is safely patched, we will gladly give you full credit for the discovery in our release notes!
+1. **Private Contact:** Email a summary of the vulnerability directly to **NDTsoftware@ccpcrepair.com**.
+2. **Sanitize Your Proof:** Include details on how to reproduce the bug and the environment variables. If you are attaching logs or Proof-of-Concept (PoC) code, **you must ensure all PII, external IP addresses, and sensitive network data are sanitized.**
+3. **Triage & Remediation:** We will acknowledge your report promptly. If you have a patch in mind, let us know in the email, and we can coordinate a private repository fix.
+
+In alignment with our professional ethics and Google Open Source standards, once the vulnerability is safely patched and deployed, we will gladly give you full credit for the discovery in our official release notes and security advisories!
