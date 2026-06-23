@@ -9,7 +9,8 @@
       • Active Listening Ports (TCP/UDP)
       • Network Diagnostics, Traceroute & DNS Benchmarking
       • Network Stack Repair (Winsock, DNS, IP)
-      • Full Diagnostic Bundle Export (ZIP)
+      • System Proxy Verifier
+      • Full Diagnostic Bundle Export (Plaintext TXT)
       • Ookla Speedtest CLI Integration
 
 .NOTES
@@ -36,9 +37,9 @@ function Write-Header {
     $banner = @"
 
   ╔══════════════════════════════════════════════════════╗
-  ║           NDT Network Diagnostics Toolkit ·          ║
+  ║            NDT Network Diagnostics Toolkit ·         ║
   ╚══════════════════════════════════════════════════════╝
-                     · BETA 000.172 ·
+                     · BETA 000.185 ·
 "@
     Write-Host $banner -ForegroundColor Cyan
 }
@@ -180,8 +181,6 @@ function Invoke-DnsBenchmark {
     $servers = @('1.1.1.1', '1.0.0.1', '8.8.8.8', '8.8.4.4', '9.9.9.9', '208.67.222.222')
     $results = @()
 
-    # Use System.Net.NetworkInformation.Ping — works identically on PS5.1 and PS7+
-    # (Test-Connection changed its return object between versions: ResponseTime → Latency)
     Write-Info "Testing standard resolvers..."
     $pinger = New-Object System.Net.NetworkInformation.Ping
 
@@ -231,14 +230,38 @@ function Send-WOL {
     } catch { Write-Err "Invalid MAC format." }
 }
 
+function Get-SystemProxyStatus {
+    Write-Section "System Proxy Verifier"
+    
+    Write-Info "Checking Windows HTTP Proxy (WinHTTP)..."
+    $winhttp = netsh winhttp show proxy | Out-String
+    if ($winhttp -match "Direct access") {
+        Write-Ok "WinHTTP: Direct access (No System Proxy)"
+    } else {
+        Write-Warn "WinHTTP Proxy Detected:"
+        Write-Host ($winhttp.Trim() -replace '(?m)^', '    ') -ForegroundColor Yellow
+    }
+
+    Write-Info "Checking User Registry (Internet Settings)..."
+    $regPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings"
+    try {
+        $proxyEnable = (Get-ItemProperty -Path $regPath -Name ProxyEnable -ErrorAction SilentlyContinue).ProxyEnable
+        $proxyServer = (Get-ItemProperty -Path $regPath -Name ProxyServer -ErrorAction SilentlyContinue).ProxyServer
+
+        if ($proxyEnable -eq 1) {
+            Write-Warn "Registry Proxy is ENABLED!"
+            Write-KV "Proxy Server" $proxyServer "Red"
+        } else {
+            Write-Ok "Registry Proxy: Disabled"
+        }
+    } catch {
+        Write-Info "Could not read proxy registry keys."
+    }
+}
+
 # ─── Python environment helpers ─────────────────────────────────────────────
 
 function Find-Python {
-    <#
-    .SYNOPSIS
-        Returns the path to a working Python 3 binary, or $null if none found.
-        Skips Windows Store stubs (they return an error, not a version string).
-    #>
     foreach ($cmd in @('python', 'python3', 'py')) {
         $c = Get-Command $cmd -ErrorAction SilentlyContinue
         if (-not $c) { continue }
@@ -251,117 +274,64 @@ function Find-Python {
 }
 
 function Ensure-PipAndDnsPython {
-    <#
-    .SYNOPSIS
-        Confirms dnspython is importable; auto-installs via pip if not.
-        Returns $true if ready, $false if the user declined or install failed.
-    #>
     param([Parameter(Mandatory)][string]$PythonBin)
 
-    # ── 1. Already installed? ────────────────────────────────────────
     $check = & $PythonBin -c "import dns; print('ok')" 2>&1
     if ("$check".Trim() -eq 'ok') { return $true }
 
     Write-Warn "Python module 'dnspython' is not installed."
-    Write-Host ""
-
-    # ── 2. Verify pip is available ───────────────────────────────────
     $pipCheck = & $PythonBin -m pip --version 2>&1
     if ($pipCheck -notmatch 'pip') {
         Write-Err "pip is not available for this Python installation."
-        Write-Host ""
-        Write-Host "  Bootstrap pip manually, then re-run:" -ForegroundColor DarkGray
-        Write-Host "    python -m ensurepip --upgrade" -ForegroundColor Cyan
-        Write-Host "    python -m pip install --upgrade pip" -ForegroundColor Cyan
         return $false
     }
 
-    $pipVer = ($pipCheck -split '\s+')[1]
-    Write-Info "pip $pipVer is available."
-    Write-Host ""
     Write-Host "  Install 'dnspython' now? [Y/N] " -NoNewline -ForegroundColor Cyan
-    if ((Read-Host).Trim() -notmatch '^[Yy]') {
-        Write-Info "Skipped. Run manually:  pip install dnspython"
-        return $false
-    }
+    if ((Read-Host).Trim() -notmatch '^[Yy]') { return $false }
 
-    # ── 3. Install dnspython ─────────────────────────────────────────
-    Write-Host ""
     Write-Info "Running: $PythonBin -m pip install dnspython ..."
-    Write-Host ""
     & $PythonBin -m pip install dnspython
 
-    # ── 4. Verify install succeeded ──────────────────────────────────
     $verify = & $PythonBin -c "import dns; print('ok')" 2>&1
     if ("$verify".Trim() -eq 'ok') {
-        Write-Host ""
         Write-Ok "dnspython installed and verified."
         return $true
     } else {
-        Write-Host ""
         Write-Err "dnspython import still failing after install."
-        Write-Info "Try running as Administrator or check pip output above."
         return $false
     }
 }
 
-# ────────────────────────────────────────────────────────────────────────────
-
 function Get-NDTDNSProfile {
     Write-Section "DNS OSINT Recon"
-
-    # ── Step 1: Find Python ──────────────────────────────────────────
-    Write-Info "Locating Python 3..."
     $pyBin = Find-Python
 
     if (-not $pyBin) {
-        Write-Host ""
         Write-Err "Python 3 is not installed or not in PATH."
-        Write-Host ""
-        Write-Host "  Install Python (pick one):" -ForegroundColor DarkGray
-        Write-Host "    winget  :  " -NoNewline -ForegroundColor DarkGray
-        Write-Host "winget install Python.Python.3" -ForegroundColor Cyan
-        Write-Host "    choco   :  " -NoNewline -ForegroundColor DarkGray
-        Write-Host "choco install python" -ForegroundColor Cyan
-        Write-Host "    manual  :  " -NoNewline -ForegroundColor DarkGray
-        Write-Host "https://www.python.org/downloads/" -ForegroundColor Cyan
-        Write-Host ""
-        Write-Info "After installing Python, restart this script."
         return
     }
 
     $pyVer = (& $pyBin --version 2>&1)
     Write-Ok "Found: $pyBin  ($pyVer)"
 
-    # ── Step 2: Ensure dnspython is present ──────────────────────────
     $ready = Ensure-PipAndDnsPython -PythonBin $pyBin
     if (-not $ready) { return }
 
-    # ── Step 3: Locate the Python helper script ───────────────────────
     $scriptPath = Join-Path $PSScriptRoot "scripts\collect_dns_profile.py"
     if (-not (Test-Path $scriptPath)) {
-        Write-Err "Helper script not found at:"
-        Write-Host "      $scriptPath" -ForegroundColor DarkGray
-        Write-Info "Expected layout:  <toolkit-root>\scripts\collect_dns_profile.py"
+        Write-Err "Helper script not found: $scriptPath"
         return
     }
 
-    # ── Step 4: Prompt for domain and run ────────────────────────────
-    Write-Host ""
-    $domain = Read-Host "  Enter Target Domain (e.g., github.com)"
+    $domain = Read-Host "`n  Enter Target Domain (e.g., github.com)"
     if ([string]::IsNullOrWhiteSpace($domain)) { return }
 
-    Write-Host ""
     Write-Info "Querying DNS records for: $domain"
-
     try {
         $rawJson = & $pyBin $scriptPath --target $domain 2>&1
         $result  = $rawJson | ConvertFrom-Json
 
-        if ($result.error) {
-            Write-Err "DNS query error: $($result.error)"
-            return
-        }
+        if ($result.error) { Write-Err "DNS query error: $($result.error)"; return }
 
         $found = $false
         foreach ($type in 'A', 'AAAA', 'MX', 'TXT') {
@@ -369,17 +339,11 @@ function Get-NDTDNSProfile {
             if ($records -and $records.Count -gt 0) {
                 $found = $true
                 Write-Host "`n  >>> $type RECORDS" -ForegroundColor DarkCyan
-                foreach ($record in $records) {
-                    Write-Host "      $record" -ForegroundColor White
-                }
+                foreach ($record in $records) { Write-Host "      $record" -ForegroundColor White }
             }
         }
         if (-not $found) { Write-Warn "No DNS records returned for: $domain" }
-
-    } catch {
-        Write-Err "Execution failed: $_"
-        Write-Info "Raw output: $rawJson"
-    }
+    } catch { Write-Err "Execution failed: $_" }
 }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -390,7 +354,6 @@ function Repair-Network {
     Write-Section "Network Stack Repair"
     if (-not (Test-IsAdmin)) {
         Write-Err "Administrator rights required to reset TCP/IP and Winsock."
-        Write-Info "Restart PowerShell as Admin to use this feature."
         return
     }
 
@@ -434,60 +397,78 @@ function Invoke-Speedtest {
     $bin = Find-SpeedtestBinary
     if (-not $bin) { Write-Err "Speedtest CLI not found. Please install via Winget/Choco."; return }
     Write-Info "Executing... (Auto-accepting EULA)"
-    Write-Host ""
     & $bin --accept-license --accept-gdpr --progress=yes
 }
 
 # ═══════════════════════════════════════════════════════════════════
-#  FULL BUNDLE EXPORT
+#  FULL BUNDLE EXPORT (PLAINTEXT)
 # ═══════════════════════════════════════════════════════════════════
 
 function Export-DiagnosticBundle {
-    Write-Section "Full Diagnostic Bundle Generator"
-    Write-Info "Gathering logs, routes, and configs..."
+    Write-Section "Full Diagnostic Bundle Generator (TXT)"
     
+    # Use script root, fallback to current directory if pasted into CLI
+    $outputDir = if ($PSScriptRoot) { $PSScriptRoot } else { $PWD }
     $stamp = (Get-Date).ToString("yyyyMMdd_HHmmss")
-    $tempDir = Join-Path $env:TEMP "NetDiag_$stamp"
-    New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
+    $logPath = Join-Path $outputDir "NDT_Diagnostic_$stamp.txt"
 
-    Write-Host "  [>] Dumping ipconfig..." -ForegroundColor DarkGray
-    ipconfig /all > "$tempDir\ipconfig.txt"
-    Write-Host "  [>] Dumping routing table..." -ForegroundColor DarkGray
-    route print > "$tempDir\route_table.txt"
-    Write-Host "  [>] Dumping ARP table..." -ForegroundColor DarkGray
-    arp -a > "$tempDir\arp_table.txt"
-    Write-Host "  [>] Dumping active network connections..." -ForegroundColor DarkGray
-    netstat -ano > "$tempDir\netstat.txt"
+    Write-Info "Gathering telemetry... Do not close the window."
     
-    Write-Host "  [>] Fetching DNS servers & Public IP..." -ForegroundColor DarkGray
-    Get-DnsClientServerAddress | Out-File "$tempDir\dns_servers.txt"
+    # Initialize Log
+    "=== NDT DIAGNOSTIC BUNDLE ===" | Out-File -FilePath $logPath -Encoding utf8
+    "Generated: $(Get-Date)" | Out-File -FilePath $logPath -Encoding utf8 -Append
+    "Host: $env:COMPUTERNAME" | Out-File -FilePath $logPath -Encoding utf8 -Append
+    "----------------------------------------" | Out-File -FilePath $logPath -Encoding utf8 -Append
 
-    # Silent external IP fetch — avoids dumping the interactive UI mid-export
+    Write-Host "  [>] Appending IP Configuration..." -ForegroundColor DarkGray
+    "`n=== IPCONFIG ===" | Out-File -FilePath $logPath -Encoding utf8 -Append
+    ipconfig /all | Out-File -FilePath $logPath -Encoding utf8 -Append
+
+    Write-Host "  [>] Appending Routing Table..." -ForegroundColor DarkGray
+    "`n=== ROUTE TABLE ===" | Out-File -FilePath $logPath -Encoding utf8 -Append
+    route print | Out-File -FilePath $logPath -Encoding utf8 -Append
+
+    Write-Host "  [>] Appending ARP Table..." -ForegroundColor DarkGray
+    "`n=== ARP TABLE ===" | Out-File -FilePath $logPath -Encoding utf8 -Append
+    arp -a | Out-File -FilePath $logPath -Encoding utf8 -Append
+
+    Write-Host "  [>] Appending Network Connections..." -ForegroundColor DarkGray
+    "`n=== NETSTAT ===" | Out-File -FilePath $logPath -Encoding utf8 -Append
+    netstat -ano | Out-File -FilePath $logPath -Encoding utf8 -Append
+
+    Write-Host "  [>] Appending System Proxy Status..." -ForegroundColor DarkGray
+    "`n=== PROXY STATUS ===" | Out-File -FilePath $logPath -Encoding utf8 -Append
+    netsh winhttp show proxy | Out-File -FilePath $logPath -Encoding utf8 -Append
+    
+    $regPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings"
+    $proxyEnable = (Get-ItemProperty -Path $regPath -Name ProxyEnable -ErrorAction SilentlyContinue).ProxyEnable
+    "Registry ProxyEnable: $proxyEnable" | Out-File -FilePath $logPath -Encoding utf8 -Append
+    $proxyServer = (Get-ItemProperty -Path $regPath -Name ProxyServer -ErrorAction SilentlyContinue).ProxyServer
+    "Registry ProxyServer: $proxyServer" | Out-File -FilePath $logPath -Encoding utf8 -Append
+
+    Write-Host "  [>] Fetching External IP..." -ForegroundColor DarkGray
     $extIP = $null
-    foreach ($svc in @('https://ipinfo.io/ip','https://api.ipify.org','https://icanhazip.com')) {
+    foreach ($svc in @('https://ipinfo.io/ip','https://api.ipify.org')) {
         try {
             $r = (Invoke-RestMethod -Uri $svc -TimeoutSec 5 -UseBasicParsing).Trim()
             if ($r -match '^\d{1,3}(\.\d{1,3}){3}$') { $extIP = $r; break }
         } catch {}
     }
-    if ($extIP) { "External IP: $extIP" | Out-File "$tempDir\external_ip.txt" }
+    if ($extIP) { 
+        "`n=== EXTERNAL IP ===" | Out-File -FilePath $logPath -Encoding utf8 -Append
+        "External IP: $extIP" | Out-File -FilePath $logPath -Encoding utf8 -Append 
+    }
     
     $bin = Find-SpeedtestBinary
     if ($bin) {
         Write-Host "  [>] Running Speedtest (This will take ~30s)..." -ForegroundColor DarkGray
-        & $bin --accept-license --accept-gdpr --format=text > "$tempDir\speedtest_result.txt"
+        "`n=== SPEEDTEST ===" | Out-File -FilePath $logPath -Encoding utf8 -Append
+        & $bin --accept-license --accept-gdpr --format=text | Out-File -FilePath $logPath -Encoding utf8 -Append
     }
 
-    Write-Host "  [>] Zipping bundle..." -ForegroundColor DarkGray
-    $zipPath = Join-Path ([Environment]::GetFolderPath("Desktop")) "NetInfo_$stamp.zip"
-    Compress-Archive -Path "$tempDir\*" -DestinationPath $zipPath -Force
-
-    # Cleanup temp folder
-    Remove-Item -Path $tempDir -Recurse -Force
-
     Write-Host ""
-    Write-Ok "Diagnostic Bundle saved to:"
-    Write-Host "      $zipPath" -ForegroundColor Cyan
+    Write-Ok "Plaintext Diagnostic Bundle safely saved to:"
+    Write-Host "      $logPath" -ForegroundColor Cyan
 }
 
 # ═══════════════════════════════════════════════════════════════════
@@ -507,9 +488,10 @@ function Show-Menu {
     Write-Host "  │  8  Wake-on-LAN (WOL) Broadcaster                      │" -ForegroundColor DarkYellow
     Write-Host "  │  9  Network Stack Repair (Reset & Flush)               │" -ForegroundColor Red
     Write-Host "  │ 10  DNS OSINT Recon Profile                            │" -ForegroundColor DarkYellow
+    Write-Host "  │ 11  System Proxy Verifier                              │" -ForegroundColor DarkYellow
     Write-Host "  ├────────────────────────────────────────────────────────┤" -ForegroundColor DarkCyan
-    Write-Host "  │  0  Generate Full Diagnostic Bundle (.ZIP)             │" -ForegroundColor Cyan
-    Write-Host "  │  Q  Quit NDT                                               │" -ForegroundColor DarkGray
+    Write-Host "  │  0  Generate Full Diagnostic Bundle (.TXT Log)         │" -ForegroundColor Cyan
+    Write-Host "  │  Q  Quit NDT                                           │" -ForegroundColor DarkGray
     Write-Host "  └────────────────────────────────────────────────────────┘" -ForegroundColor DarkCyan
     Write-Host ""
     Write-Host "  ›  " -NoNewline -ForegroundColor Cyan
@@ -522,18 +504,19 @@ do {
     Write-Header
 
     switch ($choice) {
-        '1' { Get-LocalIP; $null = Get-ExternalIP }
-        '2' { Test-NetworkHealth }
-        '3' { Get-ListeningPorts }
-        '4' { Get-LanDiscovery }
-        '5' { Invoke-DnsBenchmark }
-        '6' { Invoke-TracerouteTask }
-        '7' { Invoke-Speedtest }
-        '8' { Send-WOL }
-        '9' { Repair-Network }
+        '1'  { Get-LocalIP; $null = Get-ExternalIP }
+        '2'  { Test-NetworkHealth }
+        '3'  { Get-ListeningPorts }
+        '4'  { Get-LanDiscovery }
+        '5'  { Invoke-DnsBenchmark }
+        '6'  { Invoke-TracerouteTask }
+        '7'  { Invoke-Speedtest }
+        '8'  { Send-WOL }
+        '9'  { Repair-Network }
         '10' { Get-NDTDNSProfile }
-        '0' { Export-DiagnosticBundle }
-        'Q' { break }
+        '11' { Get-SystemProxyStatus }
+        '0'  { Export-DiagnosticBundle }
+        'Q'  { break }
         default { Write-Host "  [?] Invalid selection." -ForegroundColor DarkYellow }
     }
 
